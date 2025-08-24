@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { Star, Heart, Shield, Download, CreditCard, Wallet, Smartphone, Check, X, Copy, ExternalLink, Phone, ArrowLeft } from 'lucide-react';
+import { Star, Heart, Shield, Download, CreditCard, Wallet, Smartphone, Check, X, Copy, ExternalLink, Phone, ArrowLeft, DollarSign, Banknote } from 'lucide-react';
+import { PayPalIcon, CryptoIcon, BankIcon } from '../components/icons/PaymentIcons';
 import { addToCart } from '../features/cart/cartSlice';
 import { toast } from 'react-hot-toast';
 import { processCMIPayment } from '../payments/paymentSlice';
+import PayPalPayment from '../components/PayPalPayment';
+import BankTransferPayment from '../components/BankTransferPayment';
+import USDTPayment from '../components/USDTPayment';
 import cmiService from '../services/cmiService';
 import { useNavigate } from 'react-router-dom';
 
@@ -136,11 +140,6 @@ const ProductDetail = () => {
   const totalPrice = (currentPlan.price * quantity).toFixed(2);
 
   const handleAddToCart = () => {
-    if (!isAuthenticated) {
-      toast.error('Please login to add items to cart');
-      return;
-    }
-
     dispatch(addToCart({
       id: `${product.id}-${selectedPlan}`,
       name: `${product.name} - ${currentPlan.name}`,
@@ -154,14 +153,11 @@ const ProductDetail = () => {
   };
 
   const handleBuyNow = () => {
-    if (!isAuthenticated) {
-      toast.error('Please login to purchase');
+    if (!selectedPaymentMethod) {
+      toast.error('Please select a payment method first');
       return;
     }
-    
-    handleAddToCart();
-    // Navigate to checkout - you can add this
-    toast.success('Redirecting to checkout...');
+    setShowPaymentDetails(true);
   };
 
   const [showPaymentDetails, setShowPaymentDetails] = useState(false);
@@ -175,25 +171,28 @@ const ProductDetail = () => {
 
   const paymentMethods = [
     { 
-      id: 'cmi', 
-      name: 'CMI - Carte Bancaire', 
-      icon: CreditCard, 
-      description: 'Visa, MasterCard (Maroc)',
-      color: 'blue'
+      id: 'paypal', 
+      name: 'PayPal', 
+      icon: PayPalIcon, 
+      description: 'Pay securely with PayPal',
+      color: 'blue',
+      bgColor: 'bg-blue-600 hover:bg-blue-700'
     },
     { 
-      id: 'crypto', 
-      name: 'Crypto USDT', 
-      icon: Wallet, 
-      description: 'Paiement par lien crypto',
-      color: 'green'
+      id: 'bank-transfer', 
+      name: 'Bank Transfer', 
+      icon: BankIcon, 
+      description: 'Transfer via banking app',
+      color: 'green',
+      bgColor: 'bg-green-600 hover:bg-green-700'
     },
     { 
-      id: 'cih', 
-      name: 'CIH Bank', 
-      icon: Phone, 
-      description: 'Virement par numéro de compte',
-      color: 'orange'
+      id: 'usdt', 
+      name: 'USDT Wallet', 
+      icon: CryptoIcon, 
+      description: 'Pay with USDT crypto',
+      color: 'orange',
+      bgColor: 'bg-orange-600 hover:bg-orange-700'
     }
   ];
 
@@ -350,29 +349,37 @@ const ProductDetail = () => {
 
           {/* Payment Methods */}
           <div className="bg-gray-800 p-6 rounded-lg">
-            <h3 className="text-lg font-semibold text-white mb-4">Méthode de Paiement</h3>
-            <div className="space-y-3">
+            <h3 className="text-lg font-semibold text-white mb-6">Choose Payment Method</h3>
+            <div className="grid grid-cols-1 gap-4">
               {paymentMethods.map((method) => {
                 const IconComponent = method.icon;
                 return (
                   <button
                     key={method.id}
                     onClick={() => handlePaymentMethodChange(method.id)}
-                    className={`w-full flex items-center p-3 border-2 rounded-lg transition-all ${
+                    className={`w-full flex items-center p-4 rounded-xl transition-all transform hover:scale-105 ${
                       selectedPaymentMethod === method.id
-                        ? 'border-blue-400 bg-gray-700'
-                        : 'border-gray-600 hover:border-gray-500 bg-gray-700'
+                        ? `${method.bgColor} shadow-lg`
+                        : 'bg-gray-700 hover:bg-gray-600 border border-gray-600'
                     }`}
                   >
-                    <IconComponent className={`h-6 w-6 mr-3 ${
-                      method.color === 'blue' ? 'text-blue-400' :
-                      method.color === 'green' ? 'text-green-400' :
-                      method.color === 'orange' ? 'text-orange-400' : 'text-gray-400'
-                    }`} />
-                    <div className="text-left">
-                      <p className="text-sm font-medium text-white">{method.name}</p>
-                      <p className="text-xs text-gray-400">{method.description}</p>
+                    <div className={`p-3 rounded-lg mr-4 ${
+                      selectedPaymentMethod === method.id ? 'bg-white bg-opacity-20' : 'bg-gray-600'
+                    }`}>
+                      <IconComponent className={`h-6 w-6 ${
+                        selectedPaymentMethod === method.id ? 'text-white' : 
+                        method.color === 'blue' ? 'text-blue-400' :
+                        method.color === 'green' ? 'text-green-400' :
+                        method.color === 'orange' ? 'text-orange-400' : 'text-gray-400'
+                      }`} />
                     </div>
+                    <div className="text-left flex-1">
+                      <p className="text-lg font-semibold text-white">{method.name}</p>
+                      <p className="text-sm text-gray-300">{method.description}</p>
+                    </div>
+                    {selectedPaymentMethod === method.id && (
+                      <Check className="h-6 w-6 text-white" />
+                    )}
                   </button>
                 );
               })}
@@ -405,20 +412,82 @@ const ProductDetail = () => {
               <span className="text-2xl font-bold text-white">${totalPrice}</span>
             </div>
 
-            <div className="flex space-x-4 mt-4">
+            <div className="flex space-x-4 mt-6">
               <button
                 onClick={handleAddToCart}
-                className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-500 transition-colors border border-gray-500"
+                className="flex-1 bg-gradient-to-r from-gray-600 to-gray-700 text-white py-3 px-6 rounded-xl font-semibold hover:from-gray-500 hover:to-gray-600 transition-all duration-200 transform hover:scale-105 shadow-lg border border-gray-500"
               >
-                Add to Cart
+                🛒 Add to Cart
               </button>
               <button
                 onClick={handleBuyNow}
-                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                disabled={!selectedPaymentMethod}
+                className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all duration-200 transform shadow-lg ${
+                  selectedPaymentMethod
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600 hover:scale-105'
+                    : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                }`}
               >
-                Buy Now
+                {selectedPaymentMethod ? '💳 Buy Now' : '⚠️ Select Payment Method'}
               </button>
             </div>
+
+            {/* Payment Details Modal */}
+            {showPaymentDetails && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-gray-800 p-6 rounded-lg max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-white">Complete Payment</h3>
+                    <button
+                      onClick={() => setShowPaymentDetails(false)}
+                      className="text-gray-400 hover:text-white"
+                    >
+                      <X className="h-6 w-6" />
+                    </button>
+                  </div>
+                  
+                  <div className="mb-4 p-3 bg-gray-700 rounded">
+                    <p className="text-sm text-gray-300">{product.name} - {currentPlan.name}</p>
+                    <p className="text-lg font-bold text-white">${totalPrice}</p>
+                  </div>
+
+                  {selectedPaymentMethod === 'paypal' && (
+                    <PayPalPayment
+                      amount={parseFloat(totalPrice)}
+                      onSuccess={(details) => {
+                        toast.success('Payment successful!');
+                        setShowPaymentDetails(false);
+                      }}
+                      onError={(error) => {
+                        toast.error('Payment failed');
+                      }}
+                    />
+                  )}
+
+                  {selectedPaymentMethod === 'bank-transfer' && (
+                    <BankTransferPayment
+                      amount={parseFloat(totalPrice)}
+                      onConfirm={(data) => {
+                        toast.success('Payment confirmation received!');
+                        setShowPaymentDetails(false);
+                      }}
+                    />
+                  )}
+
+                  {selectedPaymentMethod === 'usdt' && (
+                    <USDTPayment
+                      amount={parseFloat(totalPrice)}
+                      onConfirm={(data) => {
+                        toast.success('USDT payment confirmation received!');
+                        setShowPaymentDetails(false);
+                      }}
+                    />
+                  )}
+
+
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

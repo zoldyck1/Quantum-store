@@ -187,10 +187,10 @@ This project is licensed under the MIT License.
 ## 🆘 Support
 
 For support and questions:
-- Email: support@digitalstore.com
+- Email: rrzltktb@gmail.com
 - Documentation: [Link to docs]
 - Issues: Create a GitHub issue
 
 ---
 
-Built with ❤️ using modern web technologies.
+Built using modern web technologies.

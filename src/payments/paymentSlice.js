@@ -55,12 +55,45 @@ export const processCMIPayment = createAsyncThunk(
   }
 )
 
-export const processCryptoPayment = createAsyncThunk(
-  'payment/processCryptoPayment',
+export const processPayPalPayment = createAsyncThunk(
+  'payment/processPayPalPayment',
   async (paymentData, { rejectWithValue }) => {
     try {
-      // Crypto payment processing will be implemented here
-      const response = await fetch('/api/crypto/create-payment', {
+      const response = await fetch('/api/paypal/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(paymentData)
+      })
+      const data = await response.json()
+      return data
+    } catch (error) {
+      return rejectWithValue(error.message)
+    }
+  }
+)
+
+export const processBankTransferPayment = createAsyncThunk(
+  'payment/processBankTransferPayment',
+  async (paymentData, { rejectWithValue }) => {
+    try {
+      const response = await fetch('/api/bank-transfer/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(paymentData)
+      })
+      const data = await response.json()
+      return data
+    } catch (error) {
+      return rejectWithValue(error.message)
+    }
+  }
+)
+
+export const processUSDTPayment = createAsyncThunk(
+  'payment/processUSDTPayment',
+  async (paymentData, { rejectWithValue }) => {
+    try {
+      const response = await fetch('/api/usdt/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(paymentData)
@@ -145,17 +178,47 @@ const paymentSlice = createSlice({
         state.error = action.payload
         state.paymentStatus = 'failed'
       })
-      // Crypto Payment
-      .addCase(processCryptoPayment.pending, (state) => {
+      // PayPal Payment
+      .addCase(processPayPalPayment.pending, (state) => {
         state.loading = true
         state.paymentStatus = 'processing'
       })
-      .addCase(processCryptoPayment.fulfilled, (state, action) => {
+      .addCase(processPayPalPayment.fulfilled, (state, action) => {
         state.loading = false
         state.paymentIntent = action.payload
         state.paymentStatus = 'succeeded'
       })
-      .addCase(processCryptoPayment.rejected, (state, action) => {
+      .addCase(processPayPalPayment.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload
+        state.paymentStatus = 'failed'
+      })
+      // Bank Transfer Payment
+      .addCase(processBankTransferPayment.pending, (state) => {
+        state.loading = true
+        state.paymentStatus = 'processing'
+      })
+      .addCase(processBankTransferPayment.fulfilled, (state, action) => {
+        state.loading = false
+        state.paymentIntent = action.payload
+        state.paymentStatus = 'succeeded'
+      })
+      .addCase(processBankTransferPayment.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload
+        state.paymentStatus = 'failed'
+      })
+      // USDT Payment
+      .addCase(processUSDTPayment.pending, (state) => {
+        state.loading = true
+        state.paymentStatus = 'processing'
+      })
+      .addCase(processUSDTPayment.fulfilled, (state, action) => {
+        state.loading = false
+        state.paymentIntent = action.payload
+        state.paymentStatus = 'succeeded'
+      })
+      .addCase(processUSDTPayment.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload
         state.paymentStatus = 'failed'

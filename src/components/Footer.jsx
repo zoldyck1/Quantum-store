@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Package, Mail, Phone, MapPin } from 'lucide-react'
+import { PayPalIcon, CryptoIcon, BankIcon } from './icons/PaymentIcons'
 
 const Footer = () => {
   return (
@@ -77,16 +78,24 @@ const Footer = () => {
           <p className="text-gray-400 text-sm">
             © 2025 DigitalStore. All rights reserved.
           </p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">
-              Privacy
-            </a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">
-              Terms
-            </a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">
-              Support
-            </a>
+          <div className="flex items-center space-x-6 mt-4 md:mt-0">
+            <div className="flex space-x-6">
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                Privacy
+              </a>
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                Terms
+              </a>
+              <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                Support
+              </a>
+            </div>
+            <div className="flex items-center space-x-3 ml-6">
+              <span className="text-xs text-gray-500">We Accept:</span>
+              <PayPalIcon className="h-6 w-6 opacity-70 hover:opacity-100 transition-opacity" />
+              <CryptoIcon className="h-6 w-6 opacity-70 hover:opacity-100 transition-opacity" />
+              <BankIcon className="h-6 w-6 opacity-70 hover:opacity-100 transition-opacity" />
+            </div>
           </div>
         </div>
       </div>

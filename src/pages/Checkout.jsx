@@ -3,7 +3,11 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { setPaymentMethod } from '../payments/paymentSlice';
 import CMIPayment from '../components/CMIPayment';
-import { CreditCard, Smartphone, DollarSign, ArrowLeft } from 'lucide-react';
+import PayPalPayment from '../components/PayPalPayment';
+import BankTransferPayment from '../components/BankTransferPayment';
+import USDTPayment from '../components/USDTPayment';
+import { CreditCard, Smartphone, DollarSign, ArrowLeft, Banknote, Wallet } from 'lucide-react';
+import { PayPalIcon, CryptoIcon, BankIcon } from '../components/icons/PaymentIcons';
 
 const Checkout = () => {
   const dispatch = useDispatch();
@@ -33,29 +37,23 @@ const Checkout = () => {
 
   const paymentMethods = [
     {
-      id: 'cmi',
-      name: 'Carte Bancaire CMI',
-      description: 'Cartes bancaires marocaines (Visa, MasterCard)',
-      icon: CreditCard,
+      id: 'paypal',
+      name: 'PayPal',
+      description: 'Pay securely with PayPal',
+      icon: PayPalIcon,
       popular: true
     },
     {
-      id: 'stripe',
-      name: 'Carte Internationale',
-      description: 'Visa, MasterCard, American Express',
-      icon: CreditCard
+      id: 'bank-transfer',
+      name: 'Bank Transfer',
+      description: 'Transfer money via your banking app',
+      icon: BankIcon
     },
     {
-      id: 'cih',
-      name: 'CIH Mobile',
-      description: 'Paiement mobile CIH Bank',
-      icon: Smartphone
-    },
-    {
-      id: 'crypto',
-      name: 'Cryptomonnaie',
-      description: 'Bitcoin, Ethereum, USDT',
-      icon: DollarSign
+      id: 'usdt',
+      name: 'USDT Wallet',
+      description: 'Pay with USDT cryptocurrency',
+      icon: CryptoIcon
     }
   ];
 
@@ -191,34 +189,29 @@ const Checkout = () => {
 
             {/* Payment Form */}
             <div className="border-t border-gray-200 pt-6">
-              {selectedMethod === 'cmi' && (
-                <CMIPayment 
-                  orderData={{
-                    amount: orderSummary.total,
-                    currency: '504', // MAD
-                    items: items
-                  }}
-                  onPaymentInitiated={handlePaymentInitiated}
+              {selectedMethod === 'paypal' && (
+                <PayPalPayment
+                  amount={orderSummary.total}
+                  onSuccess={handlePaymentInitiated}
+                  onError={(error) => console.error('PayPal error:', error)}
                 />
               )}
               
-              {selectedMethod === 'stripe' && (
-                <div className="bg-gray-100 p-6 rounded-lg text-center">
-                  <p className="text-gray-600">Stripe payment integration will be implemented here</p>
-                </div>
+              {selectedMethod === 'bank-transfer' && (
+                <BankTransferPayment
+                  amount={orderSummary.total}
+                  onConfirm={handlePaymentInitiated}
+                />
               )}
               
-              {selectedMethod === 'cih' && (
-                <div className="bg-gray-100 p-6 rounded-lg text-center">
-                  <p className="text-gray-600">CIH payment integration will be implemented here</p>
-                </div>
+              {selectedMethod === 'usdt' && (
+                <USDTPayment
+                  amount={orderSummary.total}
+                  onConfirm={handlePaymentInitiated}
+                />
               )}
               
-              {selectedMethod === 'crypto' && (
-                <div className="bg-gray-100 p-6 rounded-lg text-center">
-                  <p className="text-gray-600">Cryptocurrency payment integration will be implemented here</p>
-                </div>
-              )}
+
             </div>
           </div>
         </div>
