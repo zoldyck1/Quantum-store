@@ -14,6 +14,7 @@
     "@insforge/sdk": "^0.0.56",
     "@reduxjs/toolkit": "^2.8.2",
     "@supabase/supabase-js": "^2.52.1",
+    "@vercel/analytics": "^1.6.1",
     "axios": "^1.11.0",
     "cmi-payment-nodejs": "^1.1.4",
     "crypto-js": "^4.2.0",
